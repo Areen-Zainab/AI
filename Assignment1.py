@@ -136,6 +136,7 @@ robots = read_robots('data/Robots0.txt')
 
 for _ in range(20):
     agent_move(dynamic_agents, grid)
+    
 #    for row in grid:
 #        print(" ".join(row))
 #    print()
