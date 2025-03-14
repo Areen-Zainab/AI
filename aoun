@@ -1,0 +1,106 @@
+import heapq
+
+
+def heuristic_distance(start, end):
+    return abs(start[0] - end[0]) + abs(start[1] - end[1])
+
+def valid_movement(grid, x, y, barriers, agents, step):
+    if 0 <= x < len(grid) and 0 <= y < len(grid[0]) and grid[x][y] != 'X':
+        if (x, y) in barriers:
+            return False
+        for agent in agents.values():
+            if step % (2 * len(agent['path'])) < len(agent['path']) and agent['path'][step % len(agent['path'])] == (x, y):
+                return False
+        return True
+    return False
+
+def load_data(grid_file, agents_file, robots_file):
+    grid_data = []
+    agents = {}
+    robot_positions = []
+    target_positions = []
+
+    with open(grid_file, 'r') as file:
+        lines = file.readlines()
+        grid_size = int(lines[0].strip()) 
+        for i in range(1, grid_size + 1): 
+            line = lines[i].replace('\n', '')
+            grid_data.append(list(line)) 
+    
+    with open(agents_file, 'r') as file:
+        index = 0
+        for line in file:
+            details = line.split(': ')[1]
+            positions, timestamps = details.split(' at times [')
+            positions = eval(positions)[0]
+            timestamps = list(map(int, timestamps.strip(']\n').split(', ')))
+            movement_path = [pos for _, pos in sorted(zip(timestamps, positions))]
+            agents[index] = {'path': movement_path, 'current': -1}
+            index += 1
+    
+    with open(robots_file, 'r') as file:
+        for line in file:
+            parts = line.split(': ')[1].split(' End ')
+            start_pos = tuple(map(int, parts[0].replace('Start (', '').replace(')', '').split(', ')))
+            goal_pos = tuple(map(int, parts[1].replace('(', '').replace(')', '').split(', ')))
+            robot_positions.append(start_pos)
+            target_positions.append(goal_pos)
+    
+    return grid_data, agents, robot_positions, target_positions
+
+def update_agents(agent_data, grid):
+    for i, agent in agent_data.items():
+        x, y = agent['path'][agent['current']]
+        if grid[x][y] == f'A{i}':
+            grid[x][y] = ' '
+        agent['current'] += 1
+        if agent['current'] >= len(agent['path']):
+            agent['current'] = 0
+            agent['path'].reverse()
+        x, y = agent['path'][agent['current']]
+        grid[x][y] = f"A{i}"
+
+
+def pathfinding(grid, start, goal, barriers, agents):
+    moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    open_set = []
+    heapq.heappush(open_set, (0, start, []))
+    visited = set()
+    
+    while open_set:
+        cost, (x, y), path = heapq.heappop(open_set)
+        if (x, y) == goal:
+            return path + [(x, y)], len(path)
+        
+        step = len(path)
+        if (x, y, step) in visited:
+            continue
+        visited.add((x, y, step))
+        
+        for dx, dy in moves:
+            nx, ny = x + dx, y + dy
+            if valid_movement(grid, nx, ny, barriers, agents, step + 1):
+                heapq.heappush(open_set, (cost + 1 + heuristic_distance((nx, ny), goal), (nx, ny), path + [(x, y)]))
+    
+    return [], float('inf')
+
+def compute_paths(grid, robots, targets, agents):
+    paths = []
+    obstacles = {(i, j) for i in range(len(grid)) for j in range(len(grid[0])) if grid[i][j] == 'X'}
+    for start, goal in zip(robots, targets):
+        route, duration = pathfinding(grid, start, goal, obstacles, agents)
+        paths.append((route, duration))
+    return paths
+
+# Load all data from files
+grid, agents, robots, targets = load_data('data0.txt', 'Agent0.txt', 'Robots0.txt')
+
+# Simulate agent movement and display the grid
+for _ in range(20):
+    update_agents(agents, grid)
+
+# Compute and display robot paths
+robot_paths = compute_paths(grid, robots, targets, agents)
+for i, (route, duration) in enumerate(robot_paths):
+    print(f"Robot {i+1} Path: {route}")
+    print(f"Total Time: {duration}")
