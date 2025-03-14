@@ -96,7 +96,5 @@ The assignments are written in **Python scripts (`.py`)**. To run them:
 
 ---
 
-This document provides the necessary steps to **set up, run, and troubleshoot** AI Labs and Assignments. 🚀  
+This document provides the necessary steps to **set up, run, and troubleshoot** AI Labs and Assignments.  
 ```
-
-Now, you can simply **copy and paste** this into your **README.md** file. Let me know if you need modifications! 🚀
