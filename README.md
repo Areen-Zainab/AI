@@ -97,4 +97,3 @@ The assignments are written in **Python scripts (`.py`)**. To run them:
 ---
 
 This document provides the necessary steps to **set up, run, and troubleshoot** AI Labs and Assignments.  
-```
