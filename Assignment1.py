@@ -59,6 +59,8 @@ def agent_move(agents, grid):
 def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
+#checks if cell is within grid and not an obstacle
+#also checks if the cell is occupied by another agent
 def is_valid_move(grid, x, y, obstacles, dynamic_agents, time_step):
     if 0 <= x < len(grid) and 0 <= y < len(grid[0]) and grid[x][y] != 'X':
         if (x, y) in obstacles:
@@ -84,7 +86,8 @@ def Astar(grid, start, goal, obstacles, dynamic_agents):
         if (x, y, time_step) in visited:
             continue
         visited.add((x, y, time_step))
-        
+
+        #robots avois obstacles and agents
         for dx, dy in moves:
             nx, ny = x + dx, y + dy
             if is_valid_move(grid, nx, ny, obstacles, dynamic_agents, time_step + 1):
@@ -92,6 +95,9 @@ def Astar(grid, start, goal, obstacles, dynamic_agents):
     
     return [], float('inf')
 
+#stores positions of all robots at each time step
+#and checks if multiple robots are at the same position
+#and shuffles the paths of robots that collide
 def collisionHatao(robot_paths):
     positions = {}
     for i, path in enumerate(robot_paths):
@@ -136,7 +142,7 @@ robots = read_robots('data/Robots0.txt')
 
 for _ in range(20):
     agent_move(dynamic_agents, grid)
-    
+
 #    for row in grid:
 #        print(" ".join(row))
 #    print()
